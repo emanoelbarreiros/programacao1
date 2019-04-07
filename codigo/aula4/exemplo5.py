@@ -1,5 +1,5 @@
-def spam():
+def cafeDaManha():
     ovos = 124
 
-spam()
+cafeDaManha()
 print(ovos)
