@@ -1,6 +1,3 @@
-#auxiliar.py
-
 def imprimir_tabuleiro(tabuleiro):
     for linha in tabuleiro:
-        print(*linha, sep=' | ')
-            
+        print(*linha, sep=' | ') 
