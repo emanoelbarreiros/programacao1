@@ -1,0 +1,4 @@
+a) Falso. A tipagem em Python é dinâmica.
+b) Verdadeiro.
+c) Falso. Funções em Python podem ser definidas sem parâmetros.
+d) Verdadeiro.
