@@ -1,10 +1,19 @@
 import auxiliar
 import regras
+import npc
+import gerador
 
 print('Bem vindo ao jogo da velha')
 print('Informe linha e coluna para jogar. Linhas e colunas podem ser 1, 2 ou 3.')
 print('Informe-as separando com um espaço. Jogar na linha 1, coluna 2 seria: 1 2')
 print('Se desejar sair, basta informar Q no lugar de sua jogada.')
+jogadores = int(input('Informe a quantidade de jogadores (1 para jogar contra o PC, e 2 para jogar contra outro humano): '))
+
+if jogadores == 1:
+    print('Montando biblioteca de jogadas...', end=' ')
+    jogos_possiveis = gerador.carregar_jogos()
+    print('pronto.')
+
 print('Boa sorte, o jogador X começa jogando!')
 print()
 
@@ -23,8 +32,15 @@ while regras.ganhador(tabuleiro) == 'N':
     else:
         mensagem = 'Vez do O. Informe linha e coluna: '
         jogada_pretendida = 'O'
+    
+
+    if jogadores == 1 and jogada_pretendida == 'O':
+        probabilidades = npc.obter_probabilidades(tabuleiro, jogos_possiveis)
+        jogada = auxiliar.soma(probabilidades[0][1], (1,1))# tupla (chance, (linha, coluna))
+    else:
+        jogada = input(mensagem).split(' ')
         
-    jogada = input(mensagem).split(' ')
+
     if len(jogada) == 2:
         linha = int(jogada[0]) - 1
         coluna = int(jogada[1]) - 1
@@ -35,6 +51,7 @@ while regras.ganhador(tabuleiro) == 'N':
 
     if (regras.jogada_valida(tabuleiro, linha, coluna)):
         tabuleiro[linha][coluna] = jogada_pretendida
+        jogos_possiveis = npc.obter_resultados_possiveis(tabuleiro, jogos_possiveis)
         auxiliar.imprimir_tabuleiro(tabuleiro)
         jogadas += 1
     else:
@@ -46,5 +63,6 @@ if ganhador == 'X':
     print('O jogador X venceu!')
 elif ganhador == 'O':
     print('O jogador O venceu!')
+    print(tabuleiro)
 else:
     print('Empate, triste...')
