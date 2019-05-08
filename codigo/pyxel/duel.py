@@ -170,8 +170,7 @@ class Jogo:
                         self.score += 1
                         acertou_tiro = True
                 if not acertou_tiro:
-                    self.tiros.append(Vetor(pyxel.mouse_x, pyxel.mouse_y))
-                        
+                    self.tiros.append(Vetor(pyxel.mouse_x, pyxel.mouse_y))            
         elif self.modo_jogo == INIMIGO_MORTO:       
             self.contador_frames_acerto += 1
             if self.contador_frames_acerto > self.espera_apos_morto:
