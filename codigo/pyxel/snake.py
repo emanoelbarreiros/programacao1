@@ -6,6 +6,7 @@ CIMA = 0
 DIREITA = 1
 BAIXO = 2
 ESQUERDA = 3
+MESMA_LINHA = 4
 
 #modos de jogo
 JOGANDO = 0
@@ -15,7 +16,7 @@ class Snake:
     def __init__(self):
         pyxel.init(208, 208)
         self.tamanho_segmento = 8
-        self.cobra = [(104,104), (96, 104), (88, 104)]
+        self.cobra = [(104,104), (96,104), (88,104)]
         self.direcao = DIREITA
         self.comida = self.nova_comida()
         self.modo_jogo = JOGANDO
@@ -33,7 +34,7 @@ class Snake:
         elif pyxel.btn(pyxel.KEY_LEFT) and self.direcao != DIREITA:
             self.direcao = ESQUERDA
 
-        if pyxel.frame_count % 2 == 0 and self.modo_jogo == JOGANDO:
+        if pyxel.frame_count % 5 == 0 and self.modo_jogo == JOGANDO:
             #atualiza estado da cobra
             cabeca = self.cobra[0]
 
@@ -75,10 +76,41 @@ class Snake:
 
     def draw(self):
         pyxel.cls(0)
-        for segmento in self.cobra:
-            pyxel.rect(segmento[0], segmento[1], segmento[0] + self.tamanho_segmento, segmento[1] + self.tamanho_segmento, 3)
+        for i, segmento in enumerate(self.cobra):
+            if i == 0:
+                if self.direcao == ESQUERDA:
+                    pyxel.blt(segmento[0], segmento[1], 0, 32, 16, 8, 8, 0)
+                elif self.direcao == DIREITA:
+                    pyxel.blt(segmento[0], segmento[1], 0, 0, 16, 8, 8, 0)
+                elif self.direcao == BAIXO:
+                    pyxel.blt(segmento[0], segmento[1], 0, 16, 16, 8, 8, 0)
+                elif self.direcao == CIMA:
+                    pyxel.blt(segmento[0], segmento[1], 0, 32, 0, 8, 8, 0)
+            else:
+                
+                if i + 1 < len(self.cobra):
+                    #checar posicao anterior cenario 1 - - -
+                    if segmento[1] == self.cobra[i-1][1] and segmento[1] == self.cobra[i+1][1]:
+                        pyxel.blt(segmento[0], segmento[1], 0, 16, 0, 8, 8, 0)
+                    #checar posicao anterior cenario 
+                    # |
+                    # |
+                    # |
+                    elif segmento[0] == self.cobra[i-1][0] and segmento[0] == self.cobra[i+1][0]:
+                        pyxel.blt(segmento[0], segmento[1], 0, 16, 8, 8, 8, 0)
+                    elif segmento[0] < self.cobra[i-1][0] and segmento[1] < self.cobra[i+1][1]:
+                        pyxel.blt(segmento[0], segmento[1], 0, 48, 8, 8, 8, 0)
+                    elif segmento[1] > self.cobra[i-1][1] and segmento[0] < self.cobra[i+1][0]:
+                        pyxel.blt(segmento[0], segmento[1], 0, 56, 0, 8, 8, 0)
+                    elif segmento[0] > self.cobra[i-1][0] and segmento[1] < self.cobra[i+1][1]:
+                        pyxel.blt(segmento[0], segmento[1], 0, 48, 0, 8, 8, 0)
+                    elif segmento[1] < self.cobra[i-1][1] and segmento[0] > self.cobra[i+1][0]:
+                        pyxel.blt(segmento[0], segmento[1], 0, 56, 8, 8, 8, 0)
+                    else:
+                        pyxel.rect(segmento[0], segmento[1], segmento[0] + self.tamanho_segmento, segmento[1] + self.tamanho_segmento, 3)
 
         pyxel.blt(self.comida[0], self.comida[1], 0, 0, 0, 8, 8)
         pyxel.text(10, 10, '({},{})'.format(self.cobra[0][0], self.cobra[0][1]), 7)
         pyxel.text(10, 20, '({},{})'.format(self.comida[0], self.comida[1]), 8)
+
 Snake()
