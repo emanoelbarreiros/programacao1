@@ -12,14 +12,28 @@ MESMA_LINHA = 4
 JOGANDO = 0
 GAME_OVER = 1
 
+#tipos de maca
+NORMAL = 0
+EXTRA = 1
+
+class Segmento:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
 class Snake:
     def __init__(self):
         pyxel.init(208, 208)
         self.tamanho_segmento = 8
-        self.cobra = [(104,104), (96,104), (88,104)]
+        self.cobra = [Segmento(104,104), (96,104), (88,104)]
         self.direcao = DIREITA
-        self.comida = self.nova_comida()
+        self.comida = self.nova_comida(NORMAL)
         self.modo_jogo = JOGANDO
+        self.score = 0
+        self.pontuacao_padrao = 8
+        self.pontuacao_extra = 40
+        self.macas_comidas = 0
+        self.timer_pontuacao = 0
         pyxel.load('snake.pyxel')
         pyxel.run(self.update, self.draw)
 
@@ -36,6 +50,7 @@ class Snake:
 
         if pyxel.frame_count % 5 == 0 and self.modo_jogo == JOGANDO:
             #atualiza estado da cobra
+            self.timer_pontuacao += 1
             cabeca = self.cobra[0]
 
             if self.direcao == CIMA:
@@ -59,8 +74,22 @@ class Snake:
                 else:
                     cabeca = (cabeca[0] - self.tamanho_segmento, cabeca[1])
 
-            if cabeca[0] == self.comida[0] and cabeca[1] == self.comida[1]:
-                self.comida = self.nova_comida()
+            if self.comida[2] == EXTRA and self.timer_pontuacao == self.pontuacao_extra:
+                self.comida = self.nova_comida(NORMAL)
+
+            if cabeca[0] == self.comida[0] and cabeca[1] == self.comida[1]:                
+                self.macas_comidas += 1
+
+                if self.comida[2] == EXTRA:
+                    self.score += self.pontuacao_extra - self.timer_pontuacao
+                else:
+                    self.score += self.pontuacao_padrao
+                
+                if self.macas_comidas % 4 == 0:
+                    self.comida = self.nova_comida(EXTRA)
+                    self.timer_pontuacao = 0
+                else:
+                    self.comida = self.nova_comida(NORMAL)
             else:
                 self.cobra.pop(-1)
 
@@ -70,8 +99,8 @@ class Snake:
 
             self.cobra.insert(0, cabeca)
 
-    def nova_comida(self):
-        comida = (random.randrange(self.tamanho_segmento, pyxel.width - self.tamanho_segmento, self.tamanho_segmento), random.randrange(self.tamanho_segmento, pyxel.height - self.tamanho_segmento, self.tamanho_segmento)) 
+    def nova_comida(self, tipo):
+        comida = (random.randrange(self.tamanho_segmento, pyxel.width - self.tamanho_segmento, self.tamanho_segmento), random.randrange(self.tamanho_segmento, pyxel.height - self.tamanho_segmento, self.tamanho_segmento), tipo)
         return comida
 
     def draw(self):
@@ -89,28 +118,10 @@ class Snake:
             else:
                 
                 if i + 1 < len(self.cobra):
-                    #checar posicao anterior cenario 1 - - -
-                    if segmento[1] == self.cobra[i-1][1] and segmento[1] == self.cobra[i+1][1]:
-                        pyxel.blt(segmento[0], segmento[1], 0, 16, 0, 8, 8, 0)
-                    #checar posicao anterior cenario 
-                    # |
-                    # |
-                    # |
-                    elif segmento[0] == self.cobra[i-1][0] and segmento[0] == self.cobra[i+1][0]:
-                        pyxel.blt(segmento[0], segmento[1], 0, 16, 8, 8, 8, 0)
-                    elif segmento[0] < self.cobra[i-1][0] and segmento[1] < self.cobra[i+1][1]:
-                        pyxel.blt(segmento[0], segmento[1], 0, 48, 8, 8, 8, 0)
-                    elif segmento[1] > self.cobra[i-1][1] and segmento[0] < self.cobra[i+1][0]:
-                        pyxel.blt(segmento[0], segmento[1], 0, 56, 0, 8, 8, 0)
-                    elif segmento[0] > self.cobra[i-1][0] and segmento[1] < self.cobra[i+1][1]:
-                        pyxel.blt(segmento[0], segmento[1], 0, 48, 0, 8, 8, 0)
-                    elif segmento[1] < self.cobra[i-1][1] and segmento[0] > self.cobra[i+1][0]:
-                        pyxel.blt(segmento[0], segmento[1], 0, 56, 8, 8, 8, 0)
-                    else:
-                        pyxel.rect(segmento[0], segmento[1], segmento[0] + self.tamanho_segmento, segmento[1] + self.tamanho_segmento, 3)
+                    segmento.x
+                    pyxel.rect(segmento[0], segmento[1], segmento[0] + self.tamanho_segmento, segmento[1] + self.tamanho_segmento, 3)
 
         pyxel.blt(self.comida[0], self.comida[1], 0, 0, 0, 8, 8)
-        pyxel.text(10, 10, '({},{})'.format(self.cobra[0][0], self.cobra[0][1]), 7)
-        pyxel.text(10, 20, '({},{})'.format(self.comida[0], self.comida[1]), 8)
+        pyxel.text(10, 10, 'SCORE {}'.format(self.score), 7)
 
 Snake()

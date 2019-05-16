@@ -1,6 +1,7 @@
 import pyxel
 import random
 import math
+import OpenGL.GL as gl
 
 #modos do inimigo
 INVISIVEL = 0
@@ -89,7 +90,7 @@ class Inimigo:
     def desenhar(self):
         self.ticks_animacao += 1
         if self.estado == VIVO:
-            #fazer animacao de movimento depois, inicialmente só colocar o sprite dele morto
+            #fazer animacao de movimento depois, inicialmente so colocar o sprite dele morto
             #redutor  = self.ticks//(self.duracao_animacao_vivo//len(animacao_vivo))
             #sprite = animacao_vivo[redutor % len(animacao_vivo)]
             if self.ticks_animacao >= self.duracao_frame_vivo:
@@ -163,6 +164,8 @@ class Jogo:
             acertou_tiro = False
             if pyxel.btnp(pyxel.KEY_LEFT_BUTTON):
                 pyxel.play(0, 0)
+                capture_image = gl.glReadPixels(pyxel.mouse_x, pyxel.height - pyxel.mouse_y, 1, 1, gl.GL_RGB, gl.GL_UNSIGNED_BYTE)
+                print(capture_image)
                 for inimigo in self.inimigos:
                     if inimigo.acertou(pyxel.mouse_x, pyxel.mouse_y, raio_tiro):
                         inimigo.matar()
