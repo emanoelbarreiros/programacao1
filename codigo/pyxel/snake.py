@@ -124,4 +124,5 @@ class Snake:
         pyxel.blt(self.comida[0], self.comida[1], 0, 0, 0, 8, 8)
         pyxel.text(10, 10, 'SCORE {}'.format(self.score), 7)
 
-Snake()
+s = Snake()
+s.draw()
