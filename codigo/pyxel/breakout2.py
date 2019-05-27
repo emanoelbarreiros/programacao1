@@ -1,12 +1,9 @@
 import pyxel
+import geometria as g
+from geometria import Ponto
 
 ATIVO = 0
 PARADO = 1
-
-class Ponto:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
 
 class Bola:
     def __init__(self, raio, pos, vel_x, vel_y):
@@ -52,32 +49,6 @@ class Breakout2:
         self.p_sup_dir = Ponto(self.p_sup_esq.x + 2*self.bola.raio + self.pad_l, self.p_sup_esq.y)
         self.p_inf_dir = Ponto(self.p_sup_dir.x, self.p_sup_dir.y + 2*self.bola.raio + self.pad_a)
 
-    def interseccao(self, p1, p2, p3, p4):
-        """ 
-        Implementacao baseada em http://www.dpi.inpe.br/gilberto/livro/bdados/cap2.pdf
-        """
-        den = (p4.y - p3.y)*(p2.x - p1.x) - (p4.x - p3.x)*(p2.y - p1.y)
-
-        num1 = (p4.x - p3.x)*(p1.y - p3.y) - (p4.y - p3.y)*(p1.x - p3.x)
-        num2 = (p2.x - p1.x)*(p1.y - p3.y) - (p2.y - p1.y)*(p1.x - p3.x)
-        #nao ha interseccao
-        #den == 0 -> segmentos paralelos
-        #num1 == 0 e num2 == 0 -> segmentos colineares
-        if den == 0 or (num1 == 0 and num2 == 0):
-            return None
-
-        u = num1/den
-        v = num2/den
-
-        if u >= 0 and u <= 1 and v >= 0 and v <= 1:
-            #calcula ponto de intersecao
-            x_intersec = p1.x + u*(p2.x - p1.x)
-            y_intersec = p1.y + u*(p2.y - p1.y)
-            return Ponto(x_intersec, y_intersec)
-        else:
-            #ha interseccao, mas fora dos segmentos
-            return None
-
     def atualizar(self):
         self.pos_anterior_bola = self.bola.pos
 
@@ -116,21 +87,21 @@ class Breakout2:
         self.p4 = Ponto(self.p3.x + 80, self.p3.y)
 
         #checa colisao com a face superior da plataforma
-        ponto = self.interseccao(self.pos_anterior_bola, self.bola.pos,
+        ponto = g.interseccao(self.pos_anterior_bola, self.bola.pos,
                     self.p_sup_esq, self.p_sup_dir)
         if ponto:
             self.bola.pos = Ponto(ponto.x, ponto.y - 1)
             self.bola.vel_y = -self.bola.vel_y
 
         #checa colisao com a face esquerda
-        ponto = self.interseccao(self.pos_anterior_bola, self.bola.pos,
+        ponto = g.interseccao(self.pos_anterior_bola, self.bola.pos,
                     self.p_sup_esq, self.p_inf_esq)
         if ponto:
             self.bola.pos = Ponto(ponto.x - 1, ponto.y)
             self.bola.vel_x = -self.bola.vel_x
 
         #checa colisao com a face direita
-        ponto = self.interseccao(self.pos_anterior_bola, self.bola.pos,
+        ponto = g.interseccao(self.pos_anterior_bola, self.bola.pos,
                     self.p_sup_dir, self.p_inf_dir)
         if ponto:
             self.bola.pos = Ponto(ponto.x + 1, ponto.y)
