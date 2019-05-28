@@ -66,6 +66,8 @@ class Aplicacao:
         self.bolas = []
         self.segmentos = []
         self.segmentos.append(Segmento(10.0, 120.0, 140.0, 180.0))
+        self.segmentos.append(Segmento(200.0, 120.0, 100.0, 90.0))
+        self.segmentos.append(Segmento(240.0, 180.0, 160.0, 200.0))
         pyxel.run(self.atualizar, self.desenhar)
 
     def atualizar(self):
