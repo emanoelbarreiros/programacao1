@@ -1,6 +1,5 @@
 import pyxel
 import euclid3 as eu
-import math
 
 class Segmento:
     def __init__(self, x1, y1, x2, y2):
@@ -72,7 +71,7 @@ class Aplicacao:
 
     def atualizar(self):
         if pyxel.btn(pyxel.KEY_LEFT_BUTTON):
-            bola = Bola(eu.Point2(pyxel.mouse_x, pyxel.mouse_y), eu.Vector2(0, 0), self.gravidade)
+            bola = Bola(eu.Point2(pyxel.mouse_x, pyxel.mouse_y), eu.Vector2(0, 0), self.gravidade, 0.2)
             self.bolas.append(bola)
 
         for i, b in enumerate(self.bolas):
