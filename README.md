@@ -29,5 +29,5 @@ Instale um bom editor de texto, sugiro o VSCode ou Sublime Text, mas fique à vo
 ## Cronograma de Entregas
 - 27/05: Definição do projeto, incluindo arte conceitual
 - 03/06: Mostrar andamento da implementação da arte na plataforma
-- 17/06: Demonstração da mecânica do jogo
+- 19/06: Demonstração da mecânica do jogo
 - 03/07: Entrega final do projeto
