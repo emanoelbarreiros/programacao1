@@ -89,6 +89,14 @@ class GameMap:
                 cell = CELL_TYPES[c]
                 pyxel.blt(j * 8, self.top_offset + i * 8, 0, cell[0], cell[1], self.tile_size, self.tile_size, 0)
 
+    def is_player_allowed(self, tile):
+        if tile:
+            #the cell is empty or has food or has power
+            x, y = tile
+            allowed = self.definition[y][x] == '0' or self.definition[y][x] == '1' or self.definition[y][x] == '2'
+            return allowed
+        else:
+            return False
 
 class Player:
     def __init__(self, tile, current_direction, top_offset, game_map):
@@ -96,6 +104,7 @@ class Player:
         self.state = STOPPED
         self.top_offset = top_offset
         self.tile = tile
+        self.speed = 1
         self.game_map = game_map
         self.absolute_position = (self.tile[0]*8, self.tile[1]*8 + self.top_offset)
         self.current_animation_frame = 0
@@ -106,7 +115,7 @@ class Player:
             [(0,32),(16,32),(24,32),(16,40)], #up
             [(0,32),(0,32),(0,32),(0,32)]  #away
         ]
-        self.future_position = (0,0)
+
     @property
     def intended_direction(self):
         return self._intended_direction
@@ -121,9 +130,50 @@ class Player:
         
 
     def update(self):
-        #calculate tile based on absolute position
-        tile = (self.absolute_position[0] // 8, self.absolute_position[1] // 8)
-        self.absolute_position = (self.tile[0]*8, self.tile[1]*8 + self.top_offset)
+        #calculate tile the character is at based on absolute position
+        tile = (self.absolute_position[0] // 8, (self.absolute_position[1] - self.top_offset) // 8)
+
+        #try to move the character
+        #first decide if the character will change direction or will continue moving using the current direction
+        intended_tile = None
+        intended_movement = None
+        x_movement = 0
+        y_movement = 0
+        if self.intended_direction == UP:
+            intended_tile = (self.absolute_position[0] // 8, (self.absolute_position[1] - self.top_offset - self.speed) // 8)
+            y_movement = -self.speed
+        elif self.intended_direction == DOWN:
+            intended_tile = (self.absolute_position[0] // 8, (self.absolute_position[1] - self.top_offset + self.speed + 8) // 8)
+            y_movement = self.speed
+        elif self.intended_direction == LEFT:
+            intended_tile = ((self.absolute_position[0] - self.speed) // 8, (self.absolute_position[1] - self.top_offset) // 8)
+            x_movement = -self.speed
+        elif self.intended_direction == RIGHT:
+            intended_tile = ((self.absolute_position[0] + self.speed + 8) // 8, (self.absolute_position[1] - self.top_offset) // 8)
+            x_movement = self.speed
+
+        #check if change of tiles is allowed
+        if intended_tile and self.game_map.is_player_allowed(intended_tile):
+            self.current_direction = self.intended_direction
+        
+        #check if current direction is allowed
+        if self.current_direction != self.intended_direction:
+            if self.current_direction == UP:
+                intended_tile = (self.absolute_position[0] // 8, (self.absolute_position[1] - self.top_offset - self.speed) // 8)
+                y_movement = -self.speed
+            elif self.current_direction == DOWN:
+                intended_tile = (self.absolute_position[0] // 8, (self.absolute_position[1] - self.top_offset + self.speed + 8) // 8)
+                y_movement = self.speed
+            elif self.current_direction == LEFT:
+                intended_tile = ((self.absolute_position[0] - self.speed) // 8, (self.absolute_position[1] - self.top_offset) // 8)
+                x_movement = -self.speed
+            elif self.current_direction == RIGHT:
+                intended_tile = ((self.absolute_position[0] + self.speed) // 8, (self.absolute_position[1] - self.top_offset + 8) // 8)
+                x_movement = self.speed
+        
+        if self.game_map.is_player_allowed(intended_tile):
+            x, y = self.absolute_position
+            self.absolute_position = (x + x_movement, y + y_movement)
 
     def draw(self):
         if pyxel.frame_count % 3 == 0 and self.state == WALKING:
