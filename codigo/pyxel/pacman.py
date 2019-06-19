@@ -70,10 +70,51 @@ CELL_TYPES = {
     '3': CELL_DOOR
 }
 
-#BLINKY #red
-#PINKY #pink
-#INKY #light blue
-#SUE #orange
+BLINKY = 0
+PINKY = 1
+INKY = 2
+SUE = 3
+DEAD_1 = 4
+DEAD_2 = 5
+
+GHOST_ANIMATION_FRAMES = [
+    { #blinky
+        RIGHT: [(0,64),(8,64)],
+        LEFT: [(16,64),(24,64)],
+        DOWN: [(48,64),(56,64)],
+        UP: [(32,64),(40,64)]
+    },
+    { #pinky
+        RIGHT: [(0,48),(8,48)],
+        LEFT: [(16,48),(24,48)],
+        DOWN: [(48,48),(56,48)],
+        UP: [(32,48),(40,48)]
+    },
+    { #inky
+        RIGHT: [(0,56),(8,56)],
+        LEFT: [(16,56),(24,56)],
+        DOWN: [(48,56),(56,56)],
+        UP: [(32,56),(40,56)]
+    },
+    { #sue
+        RIGHT: [(0,72),(8,72)],
+        LEFT: [(16,72),(24,72)],
+        DOWN: [(48,72),(56,72)],
+        UP: [(32,72),(40,72)]
+    },
+    { #dead 1
+        RIGHT: [(0,80),(8,80)],
+        LEFT: [(0,80),(8,80)],
+        DOWN: [(0,80),(8,80)],
+        UP: [(0,80),(8,80)]
+    },
+    { #dead 2
+        RIGHT: [(16,80),(24,80)],
+        LEFT: [(16,80),(24,80)],
+        DOWN: [(16,80),(24,80)],
+        UP: [(16,80),(24,80)]
+    }
+]
 
 
 class GameMap:
@@ -204,9 +245,10 @@ class Player:
             
 
 class Ghost:
-    def __init__(self, position, ghost_type):
+    def __init__(self, position, persona):
         self.position = position
-        self.ghost_type = ghost_type
+        self.persona = persona
+        #self.animation_frames = 
 
 class Game:
     def __init__(self):
