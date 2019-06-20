@@ -73,7 +73,7 @@ CELL_TYPES = {
 BLINKY = 0
 PINKY = 1
 INKY = 2
-SUE = 3
+CLYDE = 3
 DEAD_1 = 4
 DEAD_2 = 5
 
@@ -96,7 +96,7 @@ GHOST_ANIMATION_FRAMES = [
         DOWN: [(48,56),(56,56)],
         UP: [(32,56),(40,56)]
     },
-    { #sue
+    { #clyde
         RIGHT: [(0,72),(8,72)],
         LEFT: [(16,72),(24,72)],
         DOWN: [(48,72),(56,72)],
@@ -119,7 +119,17 @@ GHOST_ANIMATION_FRAMES = [
 
 class GameMap:
     def __init__(self, definition, top_offset):
-        self.definition = definition
+        self.definition = []
+        self.transport_tiles = {}
+        for line in definition:
+            if line.startswith('.'):
+                line = line[1:].split('<>')
+                cell1 = eval(line[0])
+                cell2 = eval(line[1])
+                self.transport_tiles[cell1] = cell2
+                self.transport_tiles[cell2] = cell1
+            else:
+                self.definition.append(line)
         self.tile_size = 8
         self.top_offset = top_offset
 
@@ -131,16 +141,25 @@ class GameMap:
 
     def is_player_allowed(self, tile):
         if tile:
-            #the cell is empty or has food or has power
+            #the cell is empty or has food or has power pill
             line, column = tile
-            allowed = self.definition[line][column] == '0' or self.definition[line][column] == '1' or self.definition[line][column] == '2'
-            return allowed
+            allowed = False
+            if line >= 0 and line <= len(self.definition) - 1 and column >= 0 and column <= len(self.definition[0]) - 1:
+                allowed = self.definition[line][column] == '0' or self.definition[line][column] == '1' or self.definition[line][column] == '2'
+            return allowed or self.is_transport_tile(tile)
         else:
             return False
 
+    def is_transport_tile(self, tile):
+        return tile in self.transport_tiles
+
+    def get_transport_destination(self, tile):
+        return self.transport_tiles[tile]
+
     def eat_food(self, line, column):
-        if self.definition[line][column] == '1'or self.definition[line][column] == '2': #food or power
-            self.definition[line] = self.definition[line][:column] + '0' + self.definition[line][column + 1:]
+        if not self.is_transport_tile((line,column)):
+            if self.definition[line][column] == '1'or self.definition[line][column] == '2': #food or power
+                self.definition[line] = self.definition[line][:column] + '0' + self.definition[line][column + 1:]
 
 class Player:
     def __init__(self, tile, current_direction, top_offset, game_map):
@@ -187,37 +206,42 @@ class Player:
 
         if len(self.move_buffer) == 0: #will try to move to the next tile
             #calculate tile the character is at, based on absolute position
-            line, column = self.get_current_tile()
-            intended_tile = None
-            steps = None
-            #calculate the tile the character wants to go to
-            if self.intended_direction == UP:
-                intended_tile = (line - 1, column)
-            elif self.intended_direction == DOWN:
-                intended_tile = (line + 1, column)
-            elif self.intended_direction == LEFT:
-                intended_tile = (line, column - 1)
-            elif self.intended_direction == RIGHT:
-                intended_tile = (line, column + 1)
-
-            if self.game_map.is_player_allowed(intended_tile): #if player is allowed to move based on the intended direction
-                self.current_direction = self.intended_direction
+            tile = self.get_current_tile()
+            if self.game_map.is_transport_tile(tile):
+                dest_tile = self.game_map.get_transport_destination(tile)
+                self.absolute_position = (dest_tile[1]*8, dest_tile[0]*8 + self.top_offset)
                 self.move_buffer.extend(self.steps[self.current_direction])
-                move = self.move_buffer.pop(0)
-            else: #else, try to move based on the old direction
-                if self.current_direction == UP:
+            else:
+                intended_tile = None
+                steps = None
+                line, column = tile
+                #calculate the tile the character wants to go to
+                if self.intended_direction == UP:
                     intended_tile = (line - 1, column)
-                elif self.current_direction == DOWN:
+                elif self.intended_direction == DOWN:
                     intended_tile = (line + 1, column)
-                elif self.current_direction == LEFT:
+                elif self.intended_direction == LEFT:
                     intended_tile = (line, column - 1)
-                elif self.current_direction == RIGHT:
+                elif self.intended_direction == RIGHT:
                     intended_tile = (line, column + 1)
 
-                if self.game_map.is_player_allowed(intended_tile): #if allowed to move using the old direction
+                if self.game_map.is_player_allowed(intended_tile): #if player is allowed to move based on the intended direction
+                    self.current_direction = self.intended_direction
                     self.move_buffer.extend(self.steps[self.current_direction])
                     move = self.move_buffer.pop(0)
+                else: #else, try to move based on the old direction
+                    if self.current_direction == UP:
+                        intended_tile = (line - 1, column)
+                    elif self.current_direction == DOWN:
+                        intended_tile = (line + 1, column)
+                    elif self.current_direction == LEFT:
+                        intended_tile = (line, column - 1)
+                    elif self.current_direction == RIGHT:
+                        intended_tile = (line, column + 1)
 
+                    if self.game_map.is_player_allowed(intended_tile): #if allowed to move using the old direction
+                        self.move_buffer.extend(self.steps[self.current_direction])
+                        move = self.move_buffer.pop(0)
         else:
             move = self.move_buffer.pop(0)
 
