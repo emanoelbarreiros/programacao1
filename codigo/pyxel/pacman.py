@@ -1,10 +1,12 @@
 import pyxel
+import pygame
+import pacman_ghosts
+import random
 
 
 #character state
 STOPPED = 0
 WALKING = 1
-
 
 #character orientation
 RIGHT = 0
@@ -70,10 +72,6 @@ CELL_TYPES = {
     '3': CELL_DOOR
 }
 
-BLINKY = 0
-PINKY = 1
-INKY = 2
-CLYDE = 3
 DEAD_1 = 4
 DEAD_2 = 5
 
@@ -118,8 +116,9 @@ GHOST_ANIMATION_FRAMES = [
 
 
 class GameMap:
-    def __init__(self, definition, top_offset):
+    def __init__(self, game_control, definition, top_offset):
         self.definition = []
+        self.game_control = game_control
         self.transport_tiles = {}
         for line in definition:
             if line.startswith('.'):
@@ -133,11 +132,11 @@ class GameMap:
         self.tile_size = 8
         self.top_offset = top_offset
 
-    def draw(self):
+    def draw(self, shake_x, shake_y):
         for i, line in enumerate(self.definition):
             for j, c in enumerate(line):
                 cell = CELL_TYPES[c]
-                pyxel.blt(j * 8, self.top_offset + i * 8, 0, cell[0], cell[1], self.tile_size, self.tile_size, 0)
+                pyxel.blt(j * 8 + shake_x, self.top_offset + i * 8 + shake_y, 0, cell[0], cell[1], self.tile_size, self.tile_size, 0)
 
     def is_player_allowed(self, tile):
         if tile:
@@ -158,11 +157,18 @@ class GameMap:
 
     def eat_food(self, line, column):
         if not self.is_transport_tile((line,column)):
+            if self.definition[line][column] == '2':
+                self.game_control.shake = 1
+
             if self.definition[line][column] == '1'or self.definition[line][column] == '2': #food or power
                 self.definition[line] = self.definition[line][:column] + '0' + self.definition[line][column + 1:]
+            
+            
 
 class Player:
-    def __init__(self, tile, current_direction, top_offset, game_map):
+    def __init__(self, game_control, tile, current_direction, top_offset, game_map):
+        self.sound_chomp = pygame.mixer.Sound('pacman_chomp.wav')
+        self.game_control = game_control
         self.intended_direction = current_direction
         self.current_direction = current_direction
         self.state = STOPPED
@@ -247,6 +253,9 @@ class Player:
 
         if move:
             self.absolute_position = (self.absolute_position[0] + move[0], self.absolute_position[1] + move[1])
+            #self.sound_chomp.play(loops=-1)
+        #else:
+            #self.sound_chomp.stop()
 
     def handle_food(self):
         tile = self.get_current_tile()
@@ -258,35 +267,32 @@ class Player:
         self.handle_movement()
         self.handle_food()
 
-    def draw(self):
-        if pyxel.frame_count % 3 == 0 and self.state == WALKING:
+    def draw(self, shake_x, shake_y):
+        if self.state == WALKING:
             self.current_animation_frame = (self.current_animation_frame + 1) % 4
 
-        pyxel.blt(self.absolute_position[0], self.absolute_position[1], 0, 
+        pyxel.blt(self.absolute_position[0] + shake_x, self.absolute_position[1] + shake_y, 0, 
             self.animation_frames[self.current_direction][self.current_animation_frame][0], 
             self.animation_frames[self.current_direction][self.current_animation_frame][1], 
             8, 8, 0)
-            
-
-class Ghost:
-    def __init__(self, position, persona):
-        self.position = position
-        self.persona = persona
-        #self.animation_frames = 
 
 class Game:
     def __init__(self):
-        pyxel.init(184, 210, fps=60)
+        pyxel.init(184, 210, fps=30)
         pyxel.load('pacman.pyxel')
+        pygame.mixer.init()
+        pygame.mixer.Sound('pacman_beginning.wav').play()
         self.top_offset = 20
         #read map data from file
         with open('map1.txt') as f:
             map_data = f.readlines()
         map_data = [l.strip() for l in map_data]
-        self.game_map = GameMap(map_data, self.top_offset)
+        self.game_map = GameMap(self, map_data, self.top_offset)
         self.intended_direction = AWAY
         self.player_tile = (12,11)
-        self.player = Player(self.player_tile, self.intended_direction, self.top_offset, self.game_map)
+        self.player = Player(self, self.player_tile, self.intended_direction, self.top_offset, self.game_map)
+        self.blinky = pacman_ghosts.Ghost(None, None, None, 1, self.game_map, self.top_offset, (8,11))
+        self.shake = 0
         #never put code after this line, it will not be executed
         pyxel.run(self.update, self.draw)
 
@@ -309,7 +315,15 @@ class Game:
     
     def draw(self):
         pyxel.cls(0)
-        self.game_map.draw()
-        self.player.draw()
+        shake_x = random.randrange(-2, 2) * self.shake
+        shake_y = random.randrange(-2, 2) * self.shake
+        
+        self.game_map.draw(shake_x, shake_y)
+        self.player.draw(shake_x, shake_y)
+        self.blinky.draw(shake_x, shake_y)
+        
+        self.shake *= 0.9
+        if self.shake <= 0.05:
+            self.shake = 0
 
 Game()
